@@ -131,7 +131,41 @@ Krkn's [stepactions](stepactions/step-deploy-krkn.yaml)  provide a flexible fram
 
 - **Template Customization**: Adapt the [step-deploy-app.yaml](stepactions/step-deploy-app.yaml) template to align with your application's deployment process.
 - **Parallel Execution**: Leverage the [trex-chaos-perf-test.yaml](rex-chaos-perf-test.yaml) template to execute multiple tests simultaneously.
+
+
 - **Krkn Stepaction Flexibility**: Customize [stepactions](stepactions/step-deploy-krkn.yaml) to fine-tune chaos engineering experiments based on specific use cases.
 By following these guidelines, you can effectively integrate chaos engineering into your KInflux workflows, enhancing the reliability and resilience of your applications.
+
+
+## Adding Krkn Chaos integration test to Konflux
+### Set secrets required by application
+Create secrets for the OCM authentication model used by the sample applicaton [rh-trex](https://github.com/openshift-online/rh-trex). Secrets can be created while creating a new application or new secrets can be added to existing components from the secrets tab.
+Assign secret and add key/value pairs related to ocm  client id, secret and token.  The service account for ocm can be created at console.redhat.com 
+
+- client_id
+- client_secret
+- ocmtoken
+![](https://github.com/yogananth-subramanian/krkn-media/blob/konflux/png/add-secret.png)
+### Add Integration tests (chaos tests)
+Select the component and integration test tab to add a new integration test.
+assign appropriate values for "GitHub URL" and  "Path in repository" and Environment as “development”, to run integration tests in ephemeral environment.
+
+- Git repo: https://github.com/krkn-chaos/konflux-chaos.git
+- Path: trex-chaos-test.yaml
+
+Go to Applications > Application Name  > Integration Tests 
+Click on the “Add Integration Test” button to add a new test.
+![](https://github.com/yogananth-subramanian/krkn-media/blob/konflux/gif/add-krkn.gif)
+###  Trigger Chaos test
+Trigger a build to verify the configuration
+In the “Components” tab, select "Start new build" to trigger a new build.
+Or create a new PR in the repo to trigger a new build.
+![](https://github.com/yogananth-subramanian/krkn-media/blob/konflux/png/trigger-build.png)
+
+
+### View results 
+Krkn Chaos test results can be viewed from the pipeline logs.
+![](https://github.com/yogananth-subramanian/krkn-media/blob/konflux/gif/krknlogs.gif)
+
 
 
