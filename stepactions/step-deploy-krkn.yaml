@@ -26,7 +26,6 @@ spec:
     - name: "$(params.credentials)"
       mountPath: /credentials                                                   
   script: |
-    set -x
     export
     export DURATION=60
     export DISTRIBUTION='openshift'

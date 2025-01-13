@@ -1,0 +1,76 @@
+apiVersion: tekton.dev/v1alpha1
+kind: StepAction
+metadata:
+  name: operator-sdk-run-bundle
+spec:
+  image: registry.redhat.io/openshift4/ose-cli:latest
+  params:
+    - name: SNAPSHOT
+      description: Expected output of the application endpoint
+    - name: chaostest
+      description: Namespace to deploy app to for testing
+    - name: ocmSecretRef
+      description: Name of a secret containing OCM credentials.
+    - name: credentials
+      description: A volume to which the remote cluster credentials will be written.
+  results:
+    - name: APP_URL
+      description: APP URL
+    - name: test_name
+      description: Test name
+    - name: reg_var
+      description: Regression variable             
+    - name: chaos_test_namespace
+      description: Chaos test namespace                    
+  env:
+    - name: KUBECONFIG
+      value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+    - name: CHAOS_TEST
+      value: "$(params.chaostest)"                
+    - name: SNAPSHOT
+      value: "$(params.SNAPSHOT)"
+  volumeMounts:
+    - name: "$(params.credentials)"
+      mountPath: /credentials
+  script: |
+    #!/usr/bin/env bash
+    echo $KUBECONFIG
+    ls -l /credentials 
+    cat $KUBECONFIG
+    echo $SNAPSHOT
+    oc whoami 
+    dnf -y install jq git
+
+    oc new-project ${CHAOS_TEST}
+    oc project ${CHAOS_TEST}
+
+    # The --insecure-skip-tls-verify option is added for local testing
+    # when the clusters only have self-signed certificates.
+    # This option should not be used in production.
+
+    REPO_IMG=$(echo $SNAPSHOT | jq -r '.components[] | .containerImage')
+
+    py_image=${REPO_IMG}
+    oc create deployment pysample-deployment --image=${py_image}  --port=8081
+    oc expose deployment pysample-deployment --port=8081 --name=pysample-service
+    sleep 60
+    oc expose service pysample-service 
+    oc patch route pysample-service -p '{"spec":{"tls":{"termination":"passthrough"}}}'
+    oc get  all
+    oc get  events
+    oc describe  pod -l app=pysample-deployment
+    oc logs  -l app=pysample-deployment
+    ROUTE_NAME=$(oc get  routes pysample-service -o name --insecure-skip-tls-verify)
+    HOST=$(oc get "${ROUTE_NAME}" -o jsonpath={.spec.host}  --insecure-skip-tls-verify)
+    echo "Found target host ${HOST} for app ${APPLICATION_NAME}"
+    
+    # Check the application endpoint
+    curl -k https://${HOST}
+    ENDPOINT_OUTPUT=$(curl -k https://${HOST})
+    echo -e "The endpoint outputs the following:\n ${ENDPOINT_OUTPUT}"
+    echo -e "Snapshot output:\n ${SNAPSHOT}"
+    echo ${HOST} > /tekton/home/endpoint_url            
+    echo -n ${HOST} | tee $(results.APP_URL.path)
+    echo '${SNAPSHOT}'|jq -r .components[].name |  tr -d '\n\t' | tee $(results.test_name.path)
+    echo -n 'iteration_duration' | tee $(results.reg_var.path)
+    echo -n "${CHAOS_TEST}" | tee $(results.chaos_test_namespace.path)
