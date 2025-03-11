@@ -13,6 +13,20 @@ You can customize the application deployment template [stepactions/step-deploy-a
 - **Chaos Test Execution**: 
 Once the application is deployed, you can run Krkn Chaos tests.
 
+### Supported chaos scenarios
+
+Scenario   | Description                                                     
+------------------------------------------- |------------------------------------------------------------------| 
+[Pod failures](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/pod-scenarios.md) | Injects pod failures                                             | 
+[Container failures](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/container-scenarios.md) | Injects container failures based on the provided kill signal     | 
+[time skew](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/time-scenarios.md) | Skews the time and date                                          | 
+[Node cpu hog](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/node-cpu-hog.md) | Hogs CPU on the targeted nodes                                   | 
+[Service Disruption](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/service-disruption-scenarios.md) | Deleting all objects within a namespace                          |  
+[Application outages](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/application-outages.md) | Isolates application Ingress/Egress traffic to observe the impact on dependent applications and recovery/initialization timing | 
+[PVC disk fill](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/pvc-scenarios.md) | Fills up a given PersistenVolumeClaim by creating a temp file on the PVC from a pod associated with it | 
+[Network Chaos](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/network-chaos.md) | Introduces network latency, packet loss, bandwidth restriction in the egress traffic of a Node's interface using tc and Netem | 
+[Pod Network Chaos](https://github.com/krkn-chaos/krkn-hub/blob/main/docs/pod-network-chaos.md) | Introduces network chaos at pod level                            | 
+
 
  #### **Example Template**
 [trex-chaos-test.yaml](trex-chaos-test.yaml)
